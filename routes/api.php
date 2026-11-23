@@ -4,16 +4,20 @@ use App\Http\Controllers\Api\V1\Admin\AuthorController;
 use App\Http\Controllers\Api\V1\Admin\BlogController as AdminBlogController;
 use App\Http\Controllers\Api\V1\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Api\V1\Admin\DashboardController;
+use App\Http\Controllers\Api\V1\Admin\InquiryController;
 use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\Auth\PasswordResetController;
 use App\Http\Controllers\Api\V1\Public\BlogController as PublicBlogController;
 use App\Http\Controllers\Api\V1\Public\CategoryController as PublicCategoryController;
+use App\Http\Controllers\Api\V1\Public\ContactController;
+use App\Http\Middleware\VerifySiteKey;
 use Illuminate\Support\Facades\Route;
 
 /*
 | WiserLeap API v1  (all routes are prefixed with /api)
 |
 | Public:  website blog (published posts only), cached.
+| Contact: the website's contact form, server-to-server only (X-Site-Key).
 | Auth:    Sanctum cookie login for the admin panel.
 | Admin:   everything the dashboard needs; requires a logged-in admin.
 */
@@ -27,6 +31,9 @@ Route::prefix('v1')->group(function () {
         Route::get('categories', [PublicCategoryController::class, 'index']);
     });
     Route::post('blogs/{slug}/view', [PublicBlogController::class, 'view'])->middleware('throttle:views');
+
+    // ---------- Contact form (Next.js server only) ----------
+    Route::post('contact', [ContactController::class, 'store'])->middleware([VerifySiteKey::class, 'throttle:contact']);
 
     // ---------- Auth ----------
     Route::prefix('auth')->group(function () {
@@ -55,5 +62,11 @@ Route::prefix('v1')->group(function () {
 
         Route::apiResource('categories', AdminCategoryController::class)->except('show');
         Route::apiResource('authors', AuthorController::class)->except('show');
+
+        Route::get('inquiries', [InquiryController::class, 'index']);
+        Route::get('inquiries/{inquiry}', [InquiryController::class, 'show']);
+        Route::patch('inquiries/{inquiry}/status', [InquiryController::class, 'status']);
+        Route::post('inquiries/{inquiry}/reply', [InquiryController::class, 'reply'])->middleware('throttle:inquiry-reply');
+        Route::delete('inquiries/{inquiry}', [InquiryController::class, 'destroy']);
     });
 });

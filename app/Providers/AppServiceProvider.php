@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Http\Middleware\VerifySiteKey;
 use App\Models\User;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -46,6 +47,15 @@ class AppServiceProvider extends ServiceProvider
             Limit::perMinute(5)->by(mb_strtolower((string) $request->input('email')).'|'.$request->ip()),
             Limit::perMinute(20)->by($request->ip()),
         ]);
+        // Contact form: per visitor (IP from VerifySiteKey), per sender email, and overall.
+        RateLimiter::for('contact', fn (Request $request) => [
+            Limit::perMinutes(10, 5)->by('ip|'.VerifySiteKey::visitorIp($request)),
+            Limit::perHour(5)->by('email|'.mb_strtolower((string) $request->input('email'))),
+            Limit::perHour(300)->by('contact-all'),
+        ]);
+        // Replies are real emails: cap them so a hijacked session can't send spam.
+        RateLimiter::for('inquiry-reply', fn (Request $request) => Limit::perHour(60)->by((string) $request->user()?->id));
+
         RateLimiter::for('register', fn (Request $request) => Limit::perHour(5)->by($request->ip()));
         RateLimiter::for('password-reset', fn (Request $request) => [
             Limit::perMinute(3)->by(mb_strtolower((string) $request->input('email')).'|'.$request->ip()),

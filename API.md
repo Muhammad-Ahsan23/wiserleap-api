@@ -39,6 +39,7 @@ User: `{ id, name, email }`
 ```json
 {
   "stats":   { "total": 12, "published": 8, "drafts": 4, "views": 11000 },
+  "inquiries": { "new": 2, "total": 15 },
   "monthly": [ { "month": "2026-06", "label": "Jun", "count": 2, "views": 3100 } ],
   "recent":  [ Blog, ... 5 ],
   "activity":[ { "id": 1, "type": "published", "title": "…", "by": "Ahsan", "at": "ISO date" } ]
@@ -109,6 +110,33 @@ Blog (admin):
 | POST | `/admin/authors` | multipart: `name`, `bio`, `image` | name 2–60 unique, bio max 200, photo jpg/png/webp max 800 KB |
 | POST | `/admin/authors/{id}` + `_method=PUT` | multipart, + `removeImage=1` to delete the photo | |
 | DELETE | `/admin/authors/{id}` | – | Their blogs stay, without an author. Returns `affectedBlogs` |
+
+### Inquiries (website contact form)
+
+| Method | Endpoint | Body | Notes |
+|---|---|---|---|
+| GET | `/admin/inquiries` | – | Query: `status` (`new`, `read`, `replied`, `archived`), `search` (name, email, subject, message), `perPage` (1–50, default 15), `page`. Newest first. `meta.counts` = `{ all, new, read, replied, archived }` |
+| GET | `/admin/inquiries/{id}` | – | Full message + `replies`. Opening a `new` inquiry marks it `read` |
+| PATCH | `/admin/inquiries/{id}/status` | `{ status }` | `new` clears `readAt` (mark unread) |
+| POST | `/admin/inquiries/{id}/reply` | `{ subject?, message }` | Emails the visitor (plain text, their message quoted), then records the reply and sets `replied`. Mail failure → 502, nothing recorded. 60/hour per admin |
+| DELETE | `/admin/inquiries/{id}` | – | Also removes its replies |
+
+Inquiry (list): `{ id, name, email, subject, budget, status, preview, repliesCount, notified, createdAt, readAt, repliedAt }`.
+Detail adds `message`, `ipAddress`, `userAgent`, `replies: [{ id, subject, body, by, createdAt }]` (no `preview`).
+`notified: false` = the email to the inbox failed (the inquiry is still saved).
+
+---
+
+## Contact form (server to server)
+
+`POST /contact` — called by the Next.js server only, never the browser.
+
+Headers: `X-Site-Key: <CONTACT_SITE_KEY>` (required; wrong/missing → 403, not configured → 503),
+`X-Visitor-Ip` and `X-Visitor-Agent` (trusted only with a valid key).
+
+Body: `{ name (2–100), email (max 200), subject? (max 150), budget? (max 100), message (10–5000) }` → `201 { message }`.
+Saves the inquiry, then emails `CONTACT_NOTIFY_EMAIL` with reply-to = the visitor. The same email + message
+within 10 minutes is accepted but not stored twice. Limits: 5 per 10 min per visitor IP, 5/hour per sender email, 300/hour overall.
 
 ---
 

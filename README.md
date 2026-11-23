@@ -68,14 +68,18 @@ SANCTUM_STATEFUL_DOMAINS=wiserleap.com,www.wiserleap.com
 SESSION_DOMAIN=.wiserleap.com
 SESSION_SECURE_COOKIE=true
 
-# Password reset emails
+# Email (password resets, inquiry notifications and replies)
 MAIL_MAILER=smtp
 MAIL_HOST=smtp.hostinger.com
 MAIL_PORT=465
-MAIL_USERNAME=info@wiserleap.com
+MAIL_USERNAME=hello@wiserleap.com
 MAIL_PASSWORD=
 MAIL_SCHEME=smtps
-MAIL_FROM_ADDRESS=info@wiserleap.com
+MAIL_FROM_ADDRESS=hello@wiserleap.com
+
+# Contact form: same secret as CONTACT_SITE_KEY on the Next.js server (64 hex chars)
+CONTACT_SITE_KEY=
+CONTACT_NOTIFY_EMAIL=hello@wiserleap.com
 ```
 
 ```bash
@@ -99,5 +103,7 @@ request into `public/`, so files such as `.env` are never served.
 | `app/Http/Resources` | JSON output (camelCase) |
 | `app/Services` | `BlogService` (all blog writes), `HtmlSanitizer`, `ActivityLogger` |
 | `app/Support` | Image storage, public cache, slugs, publish checklist |
-| `config/admin.php`, `config/media.php`, `config/cors.php` | App settings |
+| `app/Mail`, `resources/views/mail` | Inquiry notification and reply emails (HTML + plain text) |
+| `app/Http/Middleware/VerifySiteKey.php` | Server-to-server key for the contact form |
+| `config/admin.php`, `config/media.php`, `config/cors.php`, `config/contact.php` | App settings |
 | `tests/Feature` | Feature tests for every endpoint |

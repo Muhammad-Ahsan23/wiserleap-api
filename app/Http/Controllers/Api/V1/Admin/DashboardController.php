@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Api\V1\Admin;
 
 use App\Enums\BlogStatus;
+use App\Enums\InquiryStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ActivityResource;
 use App\Http\Resources\BlogResource;
 use App\Models\ActivityLog;
 use App\Models\Blog;
+use App\Models\Inquiry;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Carbon;
 
@@ -30,6 +32,10 @@ class DashboardController extends Controller
                 'published' => (int) ($published->total ?? 0),
                 'drafts' => (int) ($drafts->total ?? 0),
                 'views' => (int) ($published->views ?? 0),
+            ],
+            'inquiries' => [
+                'new' => Inquiry::query()->where('status', InquiryStatus::New)->count(),
+                'total' => Inquiry::query()->count(),
             ],
             'monthly' => $this->monthly(),
             'recent' => BlogResource::collection(
