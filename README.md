@@ -10,7 +10,13 @@ Full endpoint reference: [API.md](API.md)
 
 ## Requirements
 
-PHP 8.3+, Composer, MySQL 8 (or MariaDB / PostgreSQL / SQLite)
+PHP 8.3+, Composer, MySQL 8+ or MariaDB 10.6+ (tested on MariaDB 10.11)
+
+Create the database first (phpMyAdmin, or):
+
+```sql
+CREATE DATABASE wiserleap CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
 
 ## Setup
 
