@@ -1,0 +1,9 @@
+# Hostinger: the website root (public_html) can't be changed, so send every
+# request into Laravel's public/ folder. Files outside public/ (.env, app/,
+# storage/, vendor/ ...) are never served directly.
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
+
+Options -Indexes

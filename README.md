@@ -85,7 +85,9 @@ php artisan storage:link
 php artisan config:cache && php artisan route:cache
 ```
 
-The web server's document root must point to the `public` folder.
+The web server's document root must point to the `public` folder. On hosts where it can't be
+changed (e.g. Hostinger shared/cloud hosting), the root `.htaccess` in this repo rewrites every
+request into `public/`, so files such as `.env` are never served.
 
 ## Project structure
 
