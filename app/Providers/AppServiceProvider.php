@@ -57,6 +57,8 @@ class AppServiceProvider extends ServiceProvider
         // Replies are real emails: cap them so a hijacked session can't send spam.
         RateLimiter::for('inquiry-reply', fn (Request $request) => Limit::perHour(60)->by((string) $request->user()?->id));
 
+        RateLimiter::for('media-upload', fn (Request $request) => Limit::perHour(200)->by((string) $request->user()?->id));
+
         RateLimiter::for('register', fn (Request $request) => Limit::perHour(5)->by($request->ip()));
         RateLimiter::for('password-reset', fn (Request $request) => [
             Limit::perMinute(3)->by(mb_strtolower((string) $request->input('email')).'|'.$request->ip()),

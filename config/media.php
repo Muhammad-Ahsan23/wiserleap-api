@@ -12,6 +12,8 @@ return [
     // Upload limits (kilobytes) - match the admin panel.
     'blog_image_max_kb' => (int) env('BLOG_IMAGE_MAX_KB', 2048),
     'author_image_max_kb' => (int) env('AUTHOR_IMAGE_MAX_KB', 800),
+    // Images inside blog content (media library). Stored as WebP, max 2000px wide.
+    'content_image_max_kb' => (int) env('CONTENT_IMAGE_MAX_KB', 5120),
 
     // How long public blog responses are cached (minutes).
     'public_cache_minutes' => (int) env('PUBLIC_CACHE_MINUTES', 10),

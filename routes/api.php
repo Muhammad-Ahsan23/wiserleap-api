@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\V1\Admin\BlogController as AdminBlogController;
 use App\Http\Controllers\Api\V1\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Api\V1\Admin\DashboardController;
 use App\Http\Controllers\Api\V1\Admin\InquiryController;
+use App\Http\Controllers\Api\V1\Admin\MediaController;
 use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\Auth\PasswordResetController;
 use App\Http\Controllers\Api\V1\Public\BlogController as PublicBlogController;
@@ -62,6 +63,11 @@ Route::prefix('v1')->group(function () {
 
         Route::apiResource('categories', AdminCategoryController::class)->except('show');
         Route::apiResource('authors', AuthorController::class)->except('show');
+
+        Route::get('media', [MediaController::class, 'index']);
+        Route::post('media', [MediaController::class, 'store'])->middleware('throttle:media-upload');
+        Route::patch('media/{media}', [MediaController::class, 'update']);
+        Route::delete('media/{media}', [MediaController::class, 'destroy']);
 
         Route::get('inquiries', [InquiryController::class, 'index']);
         Route::get('inquiries/{inquiry}', [InquiryController::class, 'show']);
