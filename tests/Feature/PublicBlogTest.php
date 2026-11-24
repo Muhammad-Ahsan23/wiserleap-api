@@ -93,6 +93,28 @@ class PublicBlogTest extends TestCase
         $this->postJson('/api/v1/blogs/viewed-post/view')->assertTooManyRequests();
     }
 
+    public function test_view_limit_is_per_visitor_when_sent_by_the_website_server(): void
+    {
+        config(['contact.site_key' => str_repeat('k', 40)]);
+        $blog = $this->makeBlog('Counted');
+        $site = fn (string $ip) => ['X-Site-Key' => str_repeat('k', 40), 'X-Visitor-Ip' => $ip];
+
+        for ($i = 0; $i < 20; $i++) {
+            $this->postJson('/api/v1/blogs/counted/view', [], $site('203.0.113.1'))->assertOk();
+        }
+        $this->postJson('/api/v1/blogs/counted/view', [], $site('203.0.113.1'))->assertTooManyRequests();
+        // Another visitor (same server IP) still counts.
+        $this->postJson('/api/v1/blogs/counted/view', [], $site('203.0.113.2'))->assertOk();
+        $this->assertSame(21, $blog->fresh()->views);
+
+        // Without the key the header is ignored: every request counts against the connecting IP.
+        $this->postJson('/api/v1/blogs/counted/view', [], ['X-Visitor-Ip' => '203.0.113.9'])->assertOk();
+        for ($i = 0; $i < 19; $i++) {
+            $this->postJson('/api/v1/blogs/counted/view', [], ['X-Visitor-Ip' => '198.51.100.'.$i]);
+        }
+        $this->postJson('/api/v1/blogs/counted/view', [], ['X-Visitor-Ip' => '198.51.100.99'])->assertTooManyRequests();
+    }
+
     public function test_public_categories_only_with_published_posts(): void
     {
         $mvp = Category::create(['name' => 'MVP Development', 'slug' => 'mvp-development']);

@@ -39,7 +39,8 @@ class AppServiceProvider extends ServiceProvider
     private function configureRateLimits(): void
     {
         RateLimiter::for('public', fn (Request $request) => Limit::perMinute(120)->by($request->ip()));
-        RateLimiter::for('views', fn (Request $request) => Limit::perMinute(20)->by($request->ip()));
+        // Views are sent by the Next.js server: limit per visitor (X-Visitor-Ip, trusted only with the site key).
+        RateLimiter::for('views', fn (Request $request) => Limit::perMinute(20)->by('ip|'.VerifySiteKey::visitorIp($request)));
         RateLimiter::for('admin', fn (Request $request) => Limit::perMinute(180)->by($request->user()?->id ?: $request->ip()));
 
         // Brute-force protection: per email + IP, and per IP overall.
